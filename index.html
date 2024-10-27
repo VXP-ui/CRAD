@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retrieve Data</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0d0d0d, #1a1a1a);
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            border: 2px solid #00ff00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+            overflow: hidden;
+            position: relative;
+            animation: backgroundMove 30s linear infinite;
+        }
+        @keyframes backgroundMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 100% 100%; }
+        }
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2.8em;
+            text-align: center;
+            text-shadow: 0 0 15px rgba(0, 255, 0, 0.9);
+            animation: flicker 1.5s infinite alternate;
+        }
+        button {
+            background-color: #222;
+            color: #00ff00;
+            border: 2px solid #00ff00;
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+            border-radius: 5px;
+            outline: none;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+        button:hover {
+            background-color: #005700;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.8);
+        }
+        button:active {
+            transform: scale(0.98);
+            box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.8);
+        }
+        #loading, #info {
+            margin-top: 20px;
+            font-size: 1.2em;
+            display: none;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-width: 100%;
+            overflow-wrap: break-word;
+            background-color: #222;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #00ff00;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            text-align: center;
+            animation: fadeIn 0.5s;
+        }
+        .error {
+            color: red;
+            animation: flash 0.5s infinite alternate;
+        }
+        @keyframes flash {
+            0% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+        .terminal {
+            width: 600px;
+            max-width: 90%;
+            background-color: #111;
+            padding: 20px;
+            border-radius: 10px;
+            overflow: auto;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+        }
+        .prompt {
+            color: #00ff00;
+            margin-bottom: 10px;
+        }
+        /* Loading spinner styles */
+        .spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: 5px solid #00ff00;
+            border-top: 5px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        /* Terminal cursor effect */
+        .cursor {
+            display: inline-block;
+            background-color: #00ff00;
+            width: 10px;
+            height: 20px;
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="terminal">
+        <h1>Retrieve Data</h1>
+        <div class="prompt">> <button data-info="trolol60130@gmail.com:genest60\nmata-">ACCOUNT 1</button></div>
+        <div class="prompt">> <button data-info="Email: rindo97@hotmail.com\npass: Celin26241771">ACCOUNT 2</button></div>
+        <div class="prompt">> <button data-info="Email: pinkbananaman1@gmail.com\npass: comdooshrag34">ACCOUNT 3</button></div>
+        <div class="prompt">> <button data-info="Email: dinhosj7@hotmail.com\npassword: 87915971">ACCOUNT 4</button></div>
+        <div class="prompt">> <button data-info="Email: brunomarques464@gmail.com\nPass: hugoamor231013">ACCOUNT 5</button></div>
+        
+        <div id="loading" class="loading-container">
+            <div class="spinner"></div>
+            <div class="loading-text">Retrieving account details...<br>Please hold on while we gather the information.</div>
+        </div>
+        <div id="info"></div>
+
+        <button onclick="location.reload();">Refresh</button>
+    </div>
+
+    <div class="cursor"></div>
+
+    <audio id="clickSound" src="https://www.soundjay.com/button/sounds/button-16.mp3" preload="auto"></audio>
+    <audio id="errorSound" src="https://www.soundjay.com/button/sounds/button-9.mp3" preload="auto"></audio>
+
+    <script>
+        const buttons = document.querySelectorAll('button:not([onclick])'); // Exclude the refresh button
+        const infoDiv = document.getElementById('info');
+        const loadingDiv = document.getElementById('loading');
+        const clickSound = document.getElementById('clickSound');
+        const errorSound = document.getElementById('errorSound');
+
+        const errorMessages = [
+            "Error: Unable to retrieve data.",
+            "Error: Connection timed out.",
+            "Error: Data not found.",
+            "Error: Access denied.",
+            "Error: Device not responding."
+        ];
+
+        function typeWriter(text, element, delay) {
+            let i = 0;
+            element.textContent = ""; // Clear previous text
+            const typing = setInterval(() => {
+                if (i < text.length) {
+                    element.textContent += text.charAt(i);
+                    i++;
+                } else {
+                    clearInterval(typing);
+                }
+            }, delay);
+        }
+
+        buttons.forEach(button => {
+            button.addEventListener('click', function() {
+                clickSound.play(); // Play click sound
+                loadingDiv.style.display = 'flex';
+                infoDiv.style.display = 'none';
+                
+                // Simulate a loading delay
+                setTimeout(() => {
+                    loadingDiv.style.display = 'none';
+                    
+                    // Randomly decide if an error occurs (50% chance of error)
+                    if (Math.random() < 0.5) { // 50% chance of error
+                        errorSound.play(); // Play error sound
+                        infoDiv.classList.add('error');
+                        infoDiv.textContent = errorMessages[Math.floor(Math.random() * errorMessages.length)];
+                    } else {
+                        infoDiv.classList.remove('error'); // Remove error class
+                        const infoText = this.getAttribute('data-info');
+                        typeWriter(infoText, infoDiv, 100); // Typewriter effect with 100ms delay
+                    }
+                    infoDiv.style.display = 'block';
+                }, 2000); // 2 seconds delay
+            });
+        });
+
+        // Keyboard shortcuts (1-5 for accounts)
+        document.addEventListener('keydown', (event) => {
+            if (event.key >= 1 && event.key <= 5) {
+                buttons[event.key - 1].click();
+            }
+        });
+    </script>
+
+</body>
+</html>
